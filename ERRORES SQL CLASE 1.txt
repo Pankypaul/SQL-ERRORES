@@ -1,0 +1,182 @@
+
+-->TABLA LOGS 
+/*
+CREATE TABLE error_proceso(
+    descripcion_general VARCHAR(120),
+    descripcion_error VARCHAR(120),
+    fecha_error DATE
+);
+SELECT * FROM error_proceso;
+DROP TABLE error_proceso;
+*/
+
+-->EN EXECEPTION SOLO SE HACEN DAR A CONOCER LOS ERRORES Y ESTOS SE AGREGAN UNA TABLA LOGS PARA LUEGO VER LA TABLA Y ARREGLAR 
+    --LOS ERRORES
+
+-->SELECT * FROM DEPARTMENTS;
+-----------------------------------------------------------
+--DUP_VAL_ON_INDEX
+--ORA-00001
+
+-----------------------------------------------------------
+--INVALID_CURSOR
+--ORA-01001
+
+-----------------------------------------------------------
+--INVALID_NUMBER
+--ORA-01722
+
+-----------------------------------------------------------
+--NO_DATA_FOUND
+--ORA-01403
+
+-----------------------------------------------------------
+--TOO_MANY_ROWS
+--ORA-01422
+
+-----------------------------------------------------------
+--VALUE_ERROR
+--ORA-06502
+
+-----------------------------------------------------------
+--ZERO_DIVIDE
+--ORA-01476
+-->NOS SALE ESTE ERROR POR DIVIDIR POR CERO
+-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+
+DECLARE
+    V_ID NUMBER :=10;
+BEGIN
+    INSERT INTO DEPARTMENTS VALUES(10, 'SEGURIDAD', 200, 1700);
+        
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+        INSERT INTO ERROR_PROCESO VALUES
+        ('ERROR EN BLOQUE ANONIMO', 'PRIMARY KEY DUPLICADA, SE INTENTO INSETAR EL ID '|| V_ID , SYSDATE);
+END;
+
+--------------------------------------------------------------------------------------------------------------------------------
+DECLARE
+    V_ID NUMBER :=10;
+    V_CODIGO_ERROR NUMBER;
+    V_MENSAJE_ERROR VARCHAR(250);
+BEGIN
+    INSERT INTO DEPARTMENTS VALUES(V_ID, 'SEGURIDAD', 200, 1700);
+        
+    EXCEPTION
+        WHEN OTHERS THEN
+        V_CODIGO_ERROR := SQLCODE;
+        V_MENSAJE_ERROR := SQLERRM;
+        
+        INSERT INTO ERROR_PROCESO2 VALUES 
+        (SYSDATE, 'ERROR EN BLOQUE ANONIMO INSERTANDO DATOS ', V_CODIGO_ERROR, V_MENSAJE_ERROR);
+END;
+/*
+CREATE TABLE ERROR_PROCESO2(
+    FECHA_ERROR DATE,
+    DECRIPCION VARCHAR (200),
+    CODIGO_ERROR NUMBER,
+    MENSAJE_ERROR VARCHAR(250)
+);
+
+SELECT * FROM ERROR_PROCESO2;
+*/
+--------------------------------------------------------------------------------------------------------------------------------
+
+DECLARE
+    EXCEPTION_INSERT EXCEPTION;
+    PRAGMA EXCEPTION_INIT(EXCEPTION_INSERT, -01400);
+    
+    V_CODIGO_ERROR NUMBER;
+    V_MENSAJE_ERROR VARCHAR(250);
+    
+BEGIN
+    INSERT INTO DEPARTMENTS VALUES(280, NULL, 200, 1700);
+        
+    EXCEPTION
+        WHEN EXCEPTION_INSERT THEN
+
+            V_CODIGO_ERROR := SQLCODE;
+            V_MENSAJE_ERROR := SQLERRM;
+            
+            INSERT INTO ERROR_PROCESO2 VALUES 
+            (SYSDATE, 'ERROR EN BLOQUE ANONIMO INSERTANDO DATOS ', V_CODIGO_ERROR, V_MENSAJE_ERROR);
+        
+        WHEN OTHERS THEN
+            V_CODIGO_ERROR := SQLCODE;
+            V_MENSAJE_ERROR := SQLERRM;
+            
+            INSERT INTO ERROR_PROCESO2 VALUES 
+            (SYSDATE, 'ERROR EN BLOQUE ANONIMO INSERTANDO DATOS ', V_CODIGO_ERROR, V_MENSAJE_ERROR);
+            
+END;
+
+-->SELECT * FROM ERROR_PROCESO2;
+
+--------------------------------------------------------------------------------------------------------------------------------
+DECLARE
+    PERSON VARCHAR(25);
+    
+    CURSOR CUR_EMP IS
+        SELECT E.EMPLOYEE_ID ID_EMP
+        , E.FIRST_NAME||' '||E.LAST_NAME NOMBRE 
+        ,D.DEPARTMENT_NAME NOMBRE_DEPARTAMENTO
+        , E.SALARY+1000 SALARIO
+        FROM EMPLOYEES E
+        JOIN DEPARTMENTS D ON E.DEPARTMENT_ID = D.DEPARTMENT_ID;
+
+BEGIN 
+    FOR PERSON IN CUR_EMP
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(PERSON.ID_EMP);
+        DBMS_OUTPUT.PUT_LINE(PERSON.NOMBRE);
+        DBMS_OUTPUT.PUT_LINE(PERSON.NOMBRE_DEPARTAMENTO);
+        DBMS_OUTPUT.PUT_LINE(PERSON.SALARIO);
+        
+        INSERT INTO EMPLEADOS_NEW_SALARY VALUES (PERSON.ID_EMP, PERSON.NOMBRE, PERSON.NOMBRE_DEPARTAMENTO, PERSON.SALARIO);
+        
+        IF PERSON.SALARIO>12000 THEN 
+            EXCEPTION
+                WHEN OTHERS THEN
+                    CODIGO_ERROR := SQLERRM;
+                    CODIGO_ERROR := SQLCODE;
+                    INSERT INTO ERROR_PROCESO3 VALUES
+                    ('SE HA ENCONTRADO UN ERROR AL MOSTRA UN EMPLEADO CON EL ID ', PERSON.ID_EMP, SYSDATE);
+        END IF;
+    END LOOP;
+
+
+    
+
+END;/*
+INSERTAR EN UNA NUEVA TABLA "EMPLEADOS_NEW_SALARY" CON EL ID DEL EMPLEADO, NOMBRE Y APELLIDO CONCATENADO
+    EL NOMBRE DEL DEPARTAMENTO EN QUE TRABAJA, Y EL SUELDO AUMENTADO EN 1.000. 
+    SI AL AUMENTAR EL SUELDO, EL SUELDO NUEVO ES SUPERIOR A 12.000 CREE UNA EXCEPTION QUE PERMITA INGRESAR 
+    EN LA TABLA: "ERROR_PROCESO" EL PORQUE DEL ERROR, EL ID DEL EMPLEADO QUE DIO ERROR Y LA FECHA DE HOY
+
+  SELECT * FROM ERROR_PROCESO3;
+
+  SELECT * FROM EMPLEADOS_NEW_SALARY; 
+
+CREATE TABLE EMPLEADOS_NEW_SALARY (
+    EMPLOYEE_ID NUMBER, 
+    EMPLOYEE_NAME VARCHAR(50),
+    DEPARTMENT_NAME VARCHAR(50), 
+    NEW_SALARY NUMBER
+);
+DROP TABLE ERROR_PROCESO3;
+CREATE TABLE ERROR_PROCESO3(
+    DESC_ERROR VARCHAR(200),
+    EMPLOYEE_ID NUMBER, 
+    FECHA_PROCESO DATE
+);
+SELECT * FROM ERROR_PROCESO3;
+
+SELECT * FROM EMPLEADOS_NEW_SALARY; 
+RAISE*/
+
+
+
+
+-->POR TERMINAR: XD PRUEBA 17 DE MAYO PLQSL ERRORES CURSORES ETC
